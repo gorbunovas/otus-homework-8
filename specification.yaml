@@ -1,0 +1,800 @@
+openapi: 3.0.0
+info:
+  version: "1.0.2"
+  title: Homework 6
+tags:
+  - name: orders
+    description: Сервис работы с заказами
+  - name: billing
+    description: Сервис биллинга
+  - name: notification
+    description: Сервис нотификаций
+  - name: storehouse
+  - name: delivery
+  - name: auth
+  - name: user
+paths:
+  /orders:
+    post:
+      tags:
+        - orders
+      summary: Создание заказа
+      operationId: createOrder
+      description: |
+        Создание заказа для пользователя с указанием цены
+      requestBody:
+        $ref: '#/components/requestBodies/OrderCreation'
+      responses:
+        '201':
+          description: Заказ создан и оплачен
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - orderId
+                properties:
+                  orderId:
+                    type: integer
+                    format: int64
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /orders/{orderId}:
+    get:
+      tags:
+        - orders
+      summary: Получение информации о заказе
+      operationId: getOrderInfo
+      description: |
+        Получение информации о заказе
+      parameters:
+        - name: orderId
+          in: path
+          description: ID заказа
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /billing/user:
+    post:
+      tags:
+        - billing
+      summary: Создание пользователя
+      operationId: createUser
+      description: |
+        Создание пользователя
+      requestBody:
+        $ref: '#/components/requestBodies/UserCreation'
+      responses:
+        '201':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - userId
+                properties:
+                  userId:
+                    type: integer
+                    format: int64
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /billing/user/{userId}:
+    get:
+      tags:
+        - billing
+      summary: Получение информации о пользователе
+      operationId: getUserInfo
+      description: |
+        Получение информации о пользователе
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /billing/deposit/{userId}:
+    post:
+      tags:
+        - billing
+      summary: Пополнение баланса пользователя
+      operationId: deposit
+      description: |
+        Пополнение баланса пользователя
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: integer
+                  format: int64
+        required: true
+      responses:
+        '200':
+          description: Успешный запрос
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /billing/withdraw/{userId}:
+    post:
+      tags:
+        - billing
+      summary: Снятие средств с баланса пользователя
+      operationId: withdraw
+      description: |
+        Снятие средств с баланса пользователя
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: integer
+                  format: int64
+        required: true
+      responses:
+        '200':
+          description: Успешный запрос
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '402':
+          description: Необходима оплата
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /notification/{userId}:
+    get:
+      tags:
+        - notification
+      summary: Получение отправленных email для пользователя
+      operationId: getUserEmails
+      description: |
+        Получение отправленных email для пользователя
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  emails:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmailContent'
+        '400':
+          description: Неверный запрос
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - notification
+      summary: Отправка email пользователю
+      operationId: sendUserEmail
+      description: |
+        Отправка email пользователю
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailContent'
+        required: true
+      responses:
+        '201':
+          description: Сообщение отправлено
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /storehouse/reservation:
+    post:
+      tags:
+        - storehouse
+      summary: Бронирование заказа пользователя
+      operationId: postStorehouse
+      description: |
+        Бронирование заказа пользователя
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorehouseContent'
+        required: true
+      responses:
+        '201':
+          description: Бронирование создано
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /storehouse/reservation/{userId}:
+    get:
+      tags:
+        - storehouse
+      summary: Получение забронированных товаром пользователем
+      operationId: getUserStorehouse
+      description: |
+        Получение забронированных товаром пользователем
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  emails:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StorehouseContent'
+        '400':
+          description: Неверный запрос
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /storehouse/items:
+    get:
+      tags:
+        - storehouse
+      summary: Получение списка товаров
+      operationId: getStorehouseItems
+      description: |
+        Получение списка товаров
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StorehouseItemsContent'
+        '400':
+          description: Неверный запрос
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - storehouse
+      summary: Добавление товара на склад
+      operationId: postStorehouseItems
+      description: |
+        Добавление товара на склад
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorehouseItemsContent'
+        required: true
+      responses:
+        '201':
+          description: Бронирование создано
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /delivery/{userId}:
+    get:
+      tags:
+        - delivery
+      summary: Получение статуса доставки
+      operationId: getDelivery
+      description: |
+        Получение статуса доставки
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  delivery:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeliveryContent'
+        '400':
+          description: Неверный запрос
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - delivery
+      summary: Добавление товара в очередь доставки
+      operationId: postDelivery
+      description: |
+        Добавление товара в очередь доставки
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryContent'
+        required: true
+      responses:
+        '201':
+          description: Доставка заказана
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Вход пользователя в систему
+      operationId: postAuthLogin
+      description: |
+        Вход пользователя в систему
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  emails:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuthLoginContent'
+        '400':
+          description: Неверный запрос
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: Регистрация пользователя
+      operationId: postAuthRegister
+      description: |
+        Регистрация пользователя
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '201':
+          description: Успешная регистрация
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /user/{userId}:
+    get:
+      tags:
+        - user
+      summary: Получение информация о пользователе
+      operationId: getUser
+      description: |
+        Получение информация о пользователе
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Успешный запрос
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Order:
+      type: object
+      required:
+        - id
+        - userId
+        - price
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+        userId:
+          type: integer
+          format: int64
+        price:
+          type: integer
+          format: int64
+        status:
+          type: integer
+          format: int64
+    User:
+      type: object
+      required:
+        - id
+        - username
+        - firstName
+        - lastName
+        - email
+        - phone
+        - balance
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+          maxLength: 256
+        firstName:
+          type: string
+          maxLength: 256
+        lastName:
+          type: string
+          maxLength: 256
+        email:
+          type: string
+          format: email
+          maxLength: 256
+        phone:
+          type: string
+          format: phone
+          maxLength: 256
+        balance:
+          type: integer
+          format: int64
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    EmailContent:
+      type: object
+      required:
+        - email
+        - title
+        - message
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 256
+        title:
+          type: string
+          format: string
+          maxLength: 256
+        message:
+          type: string
+    StorehouseContent:
+      type: object
+      required:
+        - storehouseId
+        - orderId
+        - status
+        - count
+      properties:
+        storehouseId:
+          type: integer
+          format: int32
+        orderId:
+          type: integer
+          format: int32
+        status:
+          type: string
+        count:
+          type: integer
+          format: int32
+    StorehouseItemsContent:
+      type: object
+      required:
+        - itemId
+        - status
+        - count
+        - name
+        - description
+      properties:
+        storehouseId:
+          type: integer
+          format: int32
+        status:
+          type: string
+        count:
+          type: integer
+          format: int32
+        name:
+          type: string
+        description:
+          type: string
+    DeliveryContent:
+      type: object
+      required:
+        - deliveryId
+        - status
+        - orderId
+        - description
+      properties:
+        storehouseId:
+          type: integer
+          format: int32
+        status:
+          type: string
+        count:
+          type: integer
+          format: int32
+        description:
+          type: string
+    AuthLoginContent:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+  requestBodies:
+    OrderCreation:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - userId
+              - price
+            properties:
+              userId:
+                type: integer
+                format: int64
+              price:
+                type: integer
+                format: int64
+      description: Информация для создания заказа
+      required: true
+    UserCreation:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - username
+              - password
+              - email
+            properties:
+              username:
+                type: string
+                maxLength: 256
+              password:
+                type: string
+                format: password
+                maxLength: 256
+              firstName:
+                type: string
+                maxLength: 256
+              lastName:
+                type: string
+                maxLength: 256
+              email:
+                type: string
+                format: email
+                maxLength: 256
+              phone:
+                type: string
+                format: phone
+                maxLength: 256
+      description: Информация для создания пользователя
+      required: true
